@@ -94,9 +94,24 @@ int ledState = LOW;
 // }
 
 String lastKeyPressed = "";
+ulong lastMillis = 0;
 
 // TODO: debounce
 void loop() {
+    const auto currentMillis = millis();
+
+    if (currentMillis - lastMillis > 1000) {
+        lastMillis = currentMillis;
+
+        if (ledState == LOW) {
+            ledState = HIGH;
+        } else {
+            ledState = LOW;
+        }
+
+        setLeds(ledState);
+    }
+
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 4; col++) {
             const int keyState = scan(row, col);
