@@ -1,58 +1,78 @@
 #include <Arduino.h>
+#include <map>
 
 #define LED_PIN 2
 #define KEY_UP LOW
 #define KEY_DOWN HIGH
 
-String keyboard[4][4] = {
+static String keyboard[4][4] = {
     {"1", "2", "3", "Stop"},
     {"4", "5", "6", "Corr"},
     {"7", "8", "9", "?"},
-    {"M", "0", " ", "Ok"},
+    {"M", "0", ".", "Ok"},
+};
+
+static std::map<String, bool> keyStates = {
+    {"1", false},
+    {"2", false},
+    {"3", false},
+    {"4", false},
+    {"5", false},
+    {"6", false},
+    {"7", false},
+    {"8", false},
+    {"9", false},
+    {"0", false},
+    {"M", false},
+    {".", false},
+    {"Stop", false},
+    {"Corr", false},
+    {"?", false},
+    {"Ok", false},
 };
 
 // Row pins == Outputs
-int rowPins[4] = {
-    21, // Row 1
-    22, // Row 2
-    17, // Row 3
-    16  // Row 4
+static int rowPins[4] = {
+    21, // Row 1 (blue)
+    22, // Row 2 (green)
+    17, // Row 3 (purple)
+    16  // Row 4 (gray)
 };
 // Colum pins == Inputs
-int colPins[4] = {
-    23, // Col 1
-    19, // Col 2
-    18, // Col 3
-    26  // Col 4
+static int colPins[4] = {
+    23, // Col 1 (yellow)
+    19, // Col 2 (orange)
+    18, // Col 3 (red)
+    26  // Col 4 (brown)
 };
 
-void setupRowAndColPins() {
+static void setupRowAndColPins() {
     for (int i = 0; i < 4; i++) {
         pinMode(rowPins[i], OUTPUT);
         pinMode(colPins[i], INPUT_PULLDOWN);
     }
 }
 
-void initRowPins() {
+static void initRowPins() {
     for (const int rowPin : rowPins) {
         digitalWrite(rowPin, LOW);
     }
 }
 
-void setLeds(const int state) {
+static void setLeds(const int state) {
     digitalWrite(LED_PIN, state);
     digitalWrite(LED_BUILTIN, state);
 }
 
-void writeRow(const int row, const int state) {
+static void writeRow(const int row, const int state) {
     digitalWrite(rowPins[row], state);
 }
 
-int readCol(const int col) {
+static int readCol(const int col) {
     return digitalRead(colPins[col]);
 }
 
-int scan(const int row, const int col) {
+static int scan(const int row, const int col) {
     int keyState = LOW;
 
     writeRow(row, HIGH);
@@ -75,7 +95,7 @@ void setup() {
     initRowPins();
 }
 
-int ledState = LOW;
+static int ledState = LOW;
 
 // void loop() {
 //     if (ledState == LOW) {
@@ -93,12 +113,12 @@ int ledState = LOW;
 //     delay(1000);
 // }
 
-String lastKeyPressed = "";
-ulong lastMillis = 0;
+static String lastKeyPressed = "";
+static ulong lastMillis = 0;
 
 // TODO: debounce
 void loop() {
-    const auto currentMillis = millis();
+    /*const auto currentMillis = millis();
 
     if (currentMillis - lastMillis > 1000) {
         lastMillis = currentMillis;
@@ -110,22 +130,40 @@ void loop() {
         }
 
         setLeds(ledState);
-    }
+    }*/
 
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 4; col++) {
             const int keyState = scan(row, col);
             const String key = keyboard[row][col];
 
-            if (keyState == KEY_DOWN && lastKeyPressed != key) {
+            if (keyState == KEY_DOWN && !keyStates[key]) {
                 // Serial.print("Key pressed: \"");
                 Serial.print(key);
+                Serial.print(" ");
+                Serial.println("DOWN");
                 // Serial.println("\"");
 
+                keyStates[key] = true;
+
                 lastKeyPressed = key;
-            } else if (keyState == KEY_UP && lastKeyPressed == key) {
+            } else if (keyState == KEY_UP && keyStates[key]) {
                 lastKeyPressed = "";
+                keyStates[key] = false;
+                Serial.print(key);
+                Serial.print(" ");
+                Serial.println("UP");
             }
         }
     }
+
+    bool anyKeyDown = false;
+    for (const auto& [_, value] : keyStates) {
+        if (value) {
+            anyKeyDown = true;
+            break;
+        }
+    }
+
+    setLeds(anyKeyDown ? HIGH : LOW);
 }
