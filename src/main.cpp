@@ -5,6 +5,15 @@
 #define KEY_UP LOW
 #define KEY_DOWN HIGH
 
+// Function pin common (black)
+#define FUNCTION_COMMON 25
+// Function 1 (brown)
+#define FUNCTION_1 5
+// Function 2 (red)
+#define FUNCTION_2 33
+// Function 3 (orange)
+#define FUNCTION_3 32
+
 static String keyboard[4][4] = {
     {"1", "2", "3", "Stop"},
     {"4", "5", "6", "Corr"},
@@ -29,6 +38,9 @@ static std::map<String, bool> keyStates = {
     {"Corr", false},
     {"?", false},
     {"Ok", false},
+    {"F1", false},
+    {"F2", false},
+    {"F3", false},
 };
 
 // Row pins == Outputs
@@ -51,6 +63,11 @@ static void setupRowAndColPins() {
         pinMode(rowPins[i], OUTPUT);
         pinMode(colPins[i], INPUT_PULLDOWN);
     }
+
+    pinMode(FUNCTION_COMMON, OUTPUT);
+    pinMode(FUNCTION_1, INPUT_PULLDOWN);
+    pinMode(FUNCTION_2, INPUT_PULLDOWN);
+    pinMode(FUNCTION_3, INPUT_PULLDOWN);
 }
 
 static void initRowPins() {
@@ -82,6 +99,25 @@ static int scan(const int row, const int col) {
     writeRow(row, LOW);
 
     return keyState;
+}
+
+static void checkFunctionKeyPress(const int espPin, const String& key) {
+    // digitalWrite(FUNCTION_COMMON, HIGH);
+    const auto keyState = digitalRead(espPin);
+    // digitalWrite(FUNCTION_COMMON, LOW);
+
+    if (keyState == KEY_DOWN && !keyStates[key]) {
+        Serial.print(key);
+        Serial.print(" ");
+        Serial.println("DOWN");
+
+        keyStates[key] = true;
+    } else if (keyState == KEY_UP && keyStates[key]) {
+        keyStates[key] = false;
+        Serial.print(key);
+        Serial.print(" ");
+        Serial.println("UP");
+    }
 }
 
 void setup() {
@@ -156,6 +192,14 @@ void loop() {
             }
         }
     }
+
+    // Manual check for function rows
+    digitalWrite(FUNCTION_COMMON, HIGH);
+    checkFunctionKeyPress(FUNCTION_1, "F1");
+    checkFunctionKeyPress(FUNCTION_2, "F2");
+    checkFunctionKeyPress(FUNCTION_3, "F3");
+
+    digitalWrite(FUNCTION_COMMON, LOW);
 
     bool anyKeyDown = false;
     for (const auto& [_, value] : keyStates) {
