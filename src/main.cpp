@@ -149,6 +149,7 @@ void loop() {
         setLeds(ledState);
     }*/
 
+    // TODO: optimize and only set the row high once per row
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 4; col++) {
             const int keyState = scan(row, col);
