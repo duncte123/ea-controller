@@ -131,26 +131,7 @@ void setup() {
     initRowPins();
 }
 
-static int ledState = LOW;
-
-// void loop() {
-//     if (ledState == LOW) {
-//         Serial.println("Light state is HIGH");
-//         ledState = HIGH;
-//     } else {
-//         Serial.println("Light state is LOW");
-//         ledState = LOW;
-//     }
-//
-//
-//     digitalWrite(LED_PIN, ledState);
-//     digitalWrite(LED_BUILTIN, ledState);
-//
-//     delay(1000);
-// }
-
-static String lastKeyPressed = "";
-static ulong lastMillis = 0;
+// static int ledState = LOW;
 
 // TODO: debounce
 void loop() {
@@ -181,10 +162,7 @@ void loop() {
                 // Serial.println("\"");
 
                 keyStates[key] = true;
-
-                lastKeyPressed = key;
             } else if (keyState == KEY_UP && keyStates[key]) {
-                lastKeyPressed = "";
                 keyStates[key] = false;
                 Serial.print(key);
                 Serial.print(" ");
