@@ -74,6 +74,8 @@ static void initRowPins() {
     for (const int rowPin : rowPins) {
         digitalWrite(rowPin, LOW);
     }
+
+    digitalWrite(FUNCTION_COMMON, LOW);
 }
 
 static void setLeds(const int state) {
